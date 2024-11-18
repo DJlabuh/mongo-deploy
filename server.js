@@ -75,3 +75,29 @@ app.get('/movies/:id', (req, res) => {
     res.status(400).json({ error: "Invalid movie id" });  // Код ошибки 400 для неправильного id
   }
 });
+
+
+// Маршрут для видалення фільму за його id.
+app.delete('/movies/:id', (req, res) => {
+  const movieId = req.params.id;
+
+  // Перевірка на валідність id
+  if (ObjectId.isValid(movieId)) {
+    db
+      .collection('movies')
+      .deleteOne({ _id: new ObjectId(movieId) })  // Преобразуем id в ObjectId
+      .then((result) => {
+        if (result.deletedCount > 0) {
+          res.status(200).json({ message: "Movie deleted successfully" });  // Фільм успішно видалений
+        } else {
+          res.status(404).json({ error: "Movie not found" });  // Якщо фільм не знайдений
+        }
+      })
+      .catch((err) => {
+        console.error('Error deleting movie:', err);
+        res.status(500).json({ error: "Something went wrong..." });  // Помилка на сервері
+      });
+  } else {
+    res.status(400).json({ error: "Invalid movie id" });  // Код помилки 400 для неправильного id
+  }
+});
