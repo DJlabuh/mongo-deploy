@@ -10,20 +10,29 @@ let db;
 // Підключення до бази даних
 connectToDb((err) => {
   if (!err) {
-    db = getDb(); // Отримання підключення
+    db = getDb();
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
     });
   } else {
     console.error('Failed to connect to database:', err.message);
-    process.exit(1); // Завершити процес у разі помилки
+    process.exit(1);
   }
 });
+
+// Функції обробки помилок
+const handleError = (res, error, status = 500) => {
+  res.status(status).json({ error });
+};
+
+const handleClientError = (res, error) => {
+  res.status(400).json({ error });
+};
 
 // Базовий маршрут
 app.get('/', (req, res) => {
   if (!db) {
-    return res.status(500).send('Database connection not established');
+    return handleError(res, 'Database connection not established');
   }
   res.send('Welcome to the MovieBox API');
 });
@@ -31,73 +40,55 @@ app.get('/', (req, res) => {
 // Маршрут для отримання списку фільмів
 app.get('/movies', (req, res) => {
   const movies = [];
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
   
-  // Додаткові параметри пагінації (наприклад, page, limit)
-  const { page = 1, limit = 10 } = req.query;
-  
-  db
-    .collection('movies')
+  db.collection('movies')
     .find()
-    .skip((page - 1) * limit)  // Пропуск попередніх елементів
-    .limit(parseInt(limit))    // Обмеження на кількість елементів
+    .skip((page - 1) * limit)
+    .limit(limit)
     .sort({ title: 1 })
     .forEach((movie) => movies.push(movie))
-    .then(() => {
-      res.status(200).json(movies);
-    })
-    .catch((err) => {
-      console.error('Error fetching movies:', err);
-      res.status(500).json({ error: "Something went wrong..." });
-    });
+    .then(() => res.status(200).json(movies))
+    .catch(() => handleError(res, 'Something goes wrong...'));
 });
 
 // Маршрут для отримання одного фільму за id
 app.get('/movies/:id', (req, res) => {
   const movieId = req.params.id;
 
-  // Перевірка на валідність id
   if (ObjectId.isValid(movieId)) {
-    db
-      .collection('movies')
-      .findOne({ _id: new ObjectId(movieId) })  // Преобразуем id в ObjectId
+    db.collection('movies')
+      .findOne({ _id: new ObjectId(movieId) })
       .then((doc) => {
         if (doc) {
-          res.status(200).json(doc);  // Если фильм найден
+          res.status(200).json(doc);
         } else {
-          res.status(404).json({ error: "Movie not found" });  // Если фильм не найден
+          handleError(res, 'Movie not found', 404);
         }
       })
-      .catch((err) => {
-        console.error('Error fetching movie by id:', err);
-        res.status(500).json({ error: "Something went wrong..." });
-      });
+      .catch(() => handleError(res, 'Something goes wrong...'));
   } else {
-    res.status(400).json({ error: "Invalid movie id" });  // Код ошибки 400 для неправильного id
+    handleClientError(res, 'Invalid movie id');
   }
 });
 
-
-// Маршрут для видалення фільму за його id.
+// Маршрут для видалення фільму за його id
 app.delete('/movies/:id', (req, res) => {
   const movieId = req.params.id;
 
-  // Перевірка на валідність id
   if (ObjectId.isValid(movieId)) {
-    db
-      .collection('movies')
-      .deleteOne({ _id: new ObjectId(movieId) })  // Преобразуем id в ObjectId
+    db.collection('movies')
+      .deleteOne({ _id: new ObjectId(movieId) })
       .then((result) => {
         if (result.deletedCount > 0) {
-          res.status(200).json({ message: "Movie deleted successfully" });  // Фільм успішно видалений
+          res.status(200).json({ message: 'Movie deleted successfully' });
         } else {
-          res.status(404).json({ error: "Movie not found" });  // Якщо фільм не знайдений
+          handleError(res, 'Movie not found', 404);
         }
       })
-      .catch((err) => {
-        console.error('Error deleting movie:', err);
-        res.status(500).json({ error: "Something went wrong..." });  // Помилка на сервері
-      });
+      .catch(() => handleError(res, 'Something goes wrong...'));
   } else {
-    res.status(400).json({ error: "Invalid movie id" });  // Код помилки 400 для неправильного id
+    handleClientError(res, 'Invalid movie id');
   }
 });
