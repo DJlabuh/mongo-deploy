@@ -1,4 +1,5 @@
 const express = require('express');
+const { ObjectId } = require('mongodb');
 const { connectToDb, getDb } = require('./db');
 
 const PORT = 3000;
@@ -27,18 +28,50 @@ app.get('/', (req, res) => {
   res.send('Welcome to the MovieBox API');
 });
 
+// Маршрут для отримання списку фільмів
 app.get('/movies', (req, res) => {
   const movies = [];
-
+  
+  // Додаткові параметри пагінації (наприклад, page, limit)
+  const { page = 1, limit = 10 } = req.query;
+  
   db
     .collection('movies')
     .find()
+    .skip((page - 1) * limit)  // Пропуск попередніх елементів
+    .limit(parseInt(limit))    // Обмеження на кількість елементів
     .sort({ title: 1 })
     .forEach((movie) => movies.push(movie))
     .then(() => {
       res.status(200).json(movies);
     })
-    .catch(() => {
+    .catch((err) => {
+      console.error('Error fetching movies:', err);
       res.status(500).json({ error: "Something went wrong..." });
     });
+});
+
+// Маршрут для отримання одного фільму за id
+app.get('/movies/:id', (req, res) => {
+  const movieId = req.params.id;
+
+  // Перевірка на валідність id
+  if (ObjectId.isValid(movieId)) {
+    db
+      .collection('movies')
+      .findOne({ _id: new ObjectId(movieId) })  // Преобразуем id в ObjectId
+      .then((doc) => {
+        if (doc) {
+          res.status(200).json(doc);  // Если фильм найден
+        } else {
+          res.status(404).json({ error: "Movie not found" });  // Если фильм не найден
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching movie by id:', err);
+        res.status(500).json({ error: "Something went wrong..." });
+      });
+  } else {
+    res.status(400).json({ error: "Invalid movie id" });  // Код ошибки 400 для неправильного id
+  }
 });
