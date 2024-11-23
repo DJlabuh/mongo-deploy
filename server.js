@@ -1,26 +1,25 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const { ObjectId } = require('mongodb');
-const { connectToDb, getDb } = require('./db');
+
+require('dotenv').config(); // Для використання змінних середовища
 
 const PORT = 3000;
 const app = express();
+const URL = process.env.MONGO_URI || 'mongodb://localhost:27017/moviebox';
 // Middleware для обробки JSON
 app.use(express.json());
 
-let db;
+mongoose
+  .connect(URL)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('Failed to connect to database:', err.message))
 
-// Підключення до бази даних
-connectToDb((err) => {
-  if (!err) {
-    db = getDb();
-    app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
-    });
-  } else {
-    console.error('Failed to connect to database:', err.message);
-    process.exit(1);
-  }
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+let db;
 
 // Функції обробки помилок
 const handleError = (res, error, status = 500) => {
