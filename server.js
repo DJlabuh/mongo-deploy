@@ -4,6 +4,8 @@ const { connectToDb, getDb } = require('./db');
 
 const PORT = 3000;
 const app = express();
+// Middleware для обробки JSON
+app.use(express.json());
 
 let db;
 
@@ -91,4 +93,18 @@ app.delete('/movies/:id', (req, res) => {
   } else {
     handleClientError(res, 'Invalid movie id');
   }
+});
+
+// Маршрут для додавання фільму
+app.post('/movies', (req, res) => {
+  db.collection('movies')
+    .insertOne(req.body)
+    .then((result) => {
+      if (result.insertedId) {
+        res.status(201).json({ message: 'Movie added successfully', movieId: result.insertedId });
+      } else {
+        handleError(res, 'Failed to add movie');
+      }
+    })
+    .catch(() => handleError(res, 'Something goes wrong...'));
 });
