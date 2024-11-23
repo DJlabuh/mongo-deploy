@@ -108,3 +108,27 @@ app.post('/movies', (req, res) => {
     })
     .catch(() => handleError(res, 'Something goes wrong...'));
 });
+
+//Маршрут оновлення фільму за ID
+app.patch('/movies/:id', (req, res) => {
+  const movieId = req.params.id;
+
+  if (ObjectId.isValid(movieId)) {
+    db.collection('movies')
+      .updateOne({ _id: new ObjectId(movieId) }, { $set: req.body })
+      .then((result) => {
+        if (result.matchedCount > 0) {
+          if (result.modifiedCount > 0) {
+            res.status(200).json({ message: 'Movie updated successfully' });
+          } else {
+            res.status(200).json({ message: 'No changes were made to the movie' });
+          }
+        } else {
+          handleError(res, 'Movie not found', 404);
+        }
+      })
+      .catch(() => handleError(res, 'Something goes wrong...'));
+  } else {
+    handleClientError(res, 'Invalid movie id');
+  }
+});
