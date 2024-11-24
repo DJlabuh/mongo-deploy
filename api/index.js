@@ -1,4 +1,4 @@
-ʼconst express = require("express");
+const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const baseRoutes = require("../routes/base-routes"); // Підключення базових маршрутів
