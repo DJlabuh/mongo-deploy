@@ -1,0 +1,14 @@
+openapi: 3.0.0
+info:
+  title: MovieBox API
+  description: API for managing movies.
+  version: 1.0.0
+servers:
+  - url: https://mongo-deploy-nu.vercel.app
+paths:
+  /movies:
+    get:
+      summary: Get all movies
+      responses:
+        200:
+          description: A list of movies
