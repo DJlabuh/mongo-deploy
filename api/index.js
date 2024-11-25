@@ -3,17 +3,19 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
-const baseRoutes = require("../routes/base-routes"); // Підключення базових маршрутів
-const movieRoutes = require("../routes/movie-routes"); // Підключення маршрутів для фільмів
+const path = require("path");
 
-  dotenv.config(); // Завантажуємо змінні середовища
+const baseRoutes = require("../routes/base-routes"); // Змінити на 'routes/base-routes'
+const movieRoutes = require("../routes/movie-routes"); // Змінити на 'routes/movie-routes'
+
+dotenv.config(); // Завантажуємо змінні середовища
 
 const app = express();
 
 const URL = process.env.MONGO_URI; // Підключення до MongoDB з .env файлу
 
 // Завантаження Swagger документації
-const swaggerDocument = YAML.load("../public/swagger.yaml");
+const swaggerDocument = YAML.load(path.join(__dirname, "../public/swagger.yaml")); // Виправлення шляху
 
 // Middleware для обробки JSON
 app.use(express.json());
