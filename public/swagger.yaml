@@ -9,28 +9,6 @@ paths:
   /movies:
     get:
       summary: Get all movies
-      description: Retrieve a list of all movies from the database.
       responses:
         200:
           description: A list of movies
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    _id:
-                      type: string
-                      description: The movie ID.
-                      example: "64d0a899c5efad00121e4f1d"
-                    title:
-                      type: string
-                      description: The title of the movie.
-                      example: "Inception"
-                    year:
-                      type: integer
-                      description: The release year of the movie.
-                      example: 2010
-        500:
-          description: Internal server error

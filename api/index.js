@@ -5,29 +5,25 @@ const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
 const path = require("path");
 
-const baseRoutes = require("../routes/base-routes"); // Змінити на 'routes/base-routes'
-const movieRoutes = require("../routes/movie-routes"); // Змінити на 'routes/movie-routes'
-
-dotenv.config(); // Завантажуємо змінні середовища
+dotenv.config();
 
 const app = express();
-
-const URL = process.env.MONGO_URI; // Підключення до MongoDB з .env файлу
+const URL = process.env.MONGO_URI;
 
 // Завантаження Swagger документації
 const swaggerDocument = YAML.load(path.join(__dirname, "../public/swagger.yaml"));
 
-// Middleware для обробки JSON
+// Middleware для JSON
 app.use(express.json());
+
+// Додаємо статичну папку
+app.use(express.static(path.join(__dirname, "../public")));
 
 // Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Використання базових маршрутів
-app.use("/", baseRoutes); // Базовий маршрут на кореневу адресу '/'
-
-// Використання маршрутів для фільмів
-app.use("/movies", movieRoutes); // Усі маршрути для фільмів починаються з '/movies'
+// Ваші маршрути
+app.use("/movies", require("../routes/movie-routes"));
 
 // Підключення до MongoDB
 mongoose
@@ -35,5 +31,5 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Failed to connect to database:", err.message));
 
-// Експортуємо додаток для використання на Vercel (Vercel самостійно запускає додаток)
+// Експортуємо для Vercel
 module.exports = app;
