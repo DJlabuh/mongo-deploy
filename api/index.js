@@ -2,22 +2,41 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const swaggerUi = require("swagger-ui-express");
-const YAML = require("yamljs");
-const path = require("path");
 
 dotenv.config();
 
 const app = express();
 const URL = process.env.MONGO_URI;
 
-// Завантаження Swagger документації
-const swaggerDocument = YAML.load(path.join(__dirname, "../public/swagger.yaml"));
+// Інлайн Swagger документація
+const swaggerDocument = {
+  openapi: "3.0.0",
+  info: {
+    title: "MovieBox API",
+    description: "API for managing movies.",
+    version: "1.0.0",
+  },
+  servers: [
+    {
+      url: "https://mongo-deploy-nu.vercel.app", // Замініть на вашу Vercel URL
+    },
+  ],
+  paths: {
+    "/movies": {
+      get: {
+        summary: "Get all movies",
+        responses: {
+          200: {
+            description: "A list of movies",
+          },
+        },
+      },
+    },
+  },
+};
 
 // Middleware для JSON
 app.use(express.json());
-
-// Додаємо статичну папку
-app.use(express.static(path.join(__dirname, "../public")));
 
 // Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
