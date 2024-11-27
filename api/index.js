@@ -15,7 +15,7 @@ const app = express();
 const URL = process.env.MONGO_URI; // Підключення до MongoDB з .env файлу
 
 // Завантаження Swagger документації
-const swaggerDocument = YAML.load(path.join(__dirname, "../public/swagger.yaml")); // Виправлення шляху
+const swaggerDocument = YAML.load(path.join(__dirname, "../public/swagger.yaml"));
 
 // Middleware для обробки JSON
 app.use(express.json());
